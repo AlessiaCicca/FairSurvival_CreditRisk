@@ -49,10 +49,11 @@ FairSurvival_CreditRisk/
 ├── notebooks/
 │   ├── InitialModel.ipynb
 │   ├── ModelFairness.ipynb
-
-```
 │   └── Evaluation.ipynb
 │
+
+
+```
 └── outputs/
     ├── simulation/
     └── fnma/
