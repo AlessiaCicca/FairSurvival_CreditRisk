@@ -54,6 +54,3 @@ FairSurvival_CreditRisk/
 └── outputs/
     ├── simulation/
     └── fnma/
-\```
-    └── fnma/
-        └── .gitkeep
