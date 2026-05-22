@@ -1,10 +1,6 @@
 # FairSurvival_CreditRisk
 
 
-# FairSurvival_CreditRisk
-
-Fair dynamic survival prediction for credit risk scoring — Master's Thesis
-
 ## Repository Structure
 
 \```
