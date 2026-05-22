@@ -1,53 +1,54 @@
 # FairSurvival_CreditRisk
 
 
+# FairSurvival_CreditRisk
+
+Fair dynamic survival prediction for credit risk scoring — Master's Thesis
+
+## Repository Structure
+
+\```
+FairSurvival_CreditRisk/
 │
-├── README.md
+├── config.py                          # global parameters
 ├── requirements.txt
-├── config.py
 │
 ├── data_generation/
-│   ├── simulation/
-│   │   ├── simulate_timevarying.R        # timevarying_gnrt.R
-│   │   └── simulate_test.R               # testdtv_gnrt.R
-│   └── fnma/
-│       ├── build_panel.py                # da CodPerformancePanel_optimized
-│       ├── build_static.py               # da CodStaticDataset
-│       ├── match_hmda.py                 # da CodMatchFreddieHMDA
+│   ├── simulation/                    # R scripts for synthetic data
+│   │   ├── simulate_timevarying.R
+│   │   └── simulate_test.R
+│   └── fnma/                          # FNMA preprocessing
+│       ├── build_panel.py
+│       ├── build_static.py
+│       ├── match_hmda.py
 │       └── notebooks/
 │           └── CheckDistributionMatch.ipynb
 │
 ├── src/
-│   ├── __init__.py
 │   ├── models/
-│   │   ├── __init__.py
-│   │   └── mlp.py                        # classe MLP + init_bias
+│   │   └── mlp.py                     # MLP architecture
 │   ├── losses/
-│   │   ├── __init__.py
-│   │   ├── eo_static.py                  # equalized_odds_loss
-│   │   └── eo_dynamic.py                 # equalized_odds_loss_dynamic (tutti i mode)
+│   │   ├── eo_static.py               # static EO penalty
+│   │   └── eo_dynamic.py              # dynamic EO penalty (all modes)
 │   ├── training/
-│   │   ├── __init__.py
-│   │   ├── train_mlp.py                  # funzione train_mlp
-│   │   └── cross_validation.py           # loop GroupKFold + summary
+│   │   ├── train_mlp.py               # training loop
+│   │   └── cross_validation.py        # GroupKFold CV
 │   ├── data/
-│   │   ├── __init__.py
-│   │   ├── build_person_period.py        # costruzione dataset PP
-│   │   ├── build_dynamic.py              # costruzione dataset landmark
-│   │   └── build_static.py              # costruzione dataset statico
+│   │   ├── build_person_period.py
+│   │   ├── build_dynamic.py
+│   │   └── build_static.py
 │   └── evaluation/
-│       ├── __init__.py
-│       ├── fairness_metrics.py           # filter_sensitive, fairness_metrics, print_report
-│       ├── fairness_plots.py             # plot_fairness_over_time, plot_auc_fairness_bar
-│       └── auc_fairness.py              # auc_fairness_single_attr
+│       ├── fairness_metrics.py
+│       ├── fairness_plots.py
+│       └── auc_fairness.py
 │
 ├── experiments/
-│   ├── run_simulation.py                 # entry point simulazione
-│   ├── run_fnma.py                       # entry point FNMA (quando pronto)
+│   ├── run_simulation.py
+│   ├── run_fnma.py
 │   └── configs/
-│       ├── simulation_fair.yaml          # parametri scenario fair
-│       ├── simulation_unfair.yaml        # parametri scenario unfair
-│       └── fnma.yaml                     # parametri FNMA
+│       ├── simulation_fair.yaml
+│       ├── simulation_unfair.yaml
+│       └── fnma.yaml
 │
 ├── notebooks/
 │   ├── InitialModel.ipynb
@@ -56,6 +57,7 @@
 │
 └── outputs/
     ├── simulation/
-    │   └── .gitkeep
+    └── fnma/
+\```
     └── fnma/
         └── .gitkeep
