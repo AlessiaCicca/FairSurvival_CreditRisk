@@ -1,0 +1,18 @@
+# 1. Match Freddie + HMDA (per ogni anno)
+python data_generation/fnma/match_hmda.py \
+    --drive_root /content/drive/MyDrive/thesis_data \
+    --year 2022
+
+# 2. Costruisci il panel longitudinale
+python data_generation/fnma/build_panel.py \
+    --drive_root /content/drive/MyDrive/thesis_data \
+    --year 2022
+
+# 3. Campionamento stratificato su tutti gli anni
+python data_generation/fnma/preprocessing.py \
+    --output_path /content/drive/MyDrive/thesis_data/output \
+    --years 2018 2024
+
+# 4. Runna l'esperimento
+python experiments/run_fnma.py \
+    --config experiments/configs/fnma.yaml
