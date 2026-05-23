@@ -32,6 +32,8 @@ import argparse
 import numpy as np
 import pandas as pd
 
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 # ── Performance column layout (Freddie Mac manual) ────────────────────────────
 
@@ -154,40 +156,51 @@ def extract_performance_zips(year: int, freddie_dir: str,
 
 # ── Step 2: load and filter performance data ──────────────────────────────────
 
-def load_performance(perf_txt_files: list, loan_ids: set) -> pd.DataFrame:
-    """
-    Load Freddie performance files, filtering to matched loan IDs only.
-    Handles datasets with varying column counts (older vintages have fewer).
-    """
-    frames = []
+PARQUET_SCHEMA = pa.schema([(col, pa.string()) for col in PERF_COLS_KEEP])
+
+def load_performance(perf_txt_files, loan_ids, parquet_path, chunk_size=200_000):
+    writer     = None
+    total_rows = 0
+
     for f in perf_txt_files:
         fname = os.path.basename(f)
-
-        # Detect column count from first line
         with open(f, "r") as fh:
-            first_line = fh.readline()
-        n_cols_file = len(first_line.split("|"))
-        col_names   = PERF_COLS_FULL[:n_cols_file]
+            n_cols_file = len(fh.readline().split("|"))
 
-        df = pd.read_csv(f, sep="|", header=None, names=col_names,
-                         dtype=str, low_memory=False)
+        rows_this_file = 0
+        for chunk in pd.read_csv(f, sep="|", header=None,
+                                  names=PERF_COLS_FULL[:n_cols_file],
+                                  dtype=str, low_memory=False,
+                                  chunksize=chunk_size, on_bad_lines="skip"):
+            filtered = chunk[chunk["loan_sequence_number"].isin(loan_ids)]
+            if filtered.empty:
+                continue
+            cols = [c for c in PERF_COLS_KEEP if c in filtered.columns]
+            filtered = filtered[cols].copy()
+            for col in PERF_COLS_KEEP:
+                if col not in filtered.columns:
+                    filtered[col] = None
+            filtered = filtered[PERF_COLS_KEEP]
 
-        # Filter immediately to reduce RAM
-        df = df[df["loan_sequence_number"].isin(loan_ids)]
+            table = pa.Table.from_pandas(filtered, schema=PARQUET_SCHEMA,
+                                          preserve_index=False)
+            if writer is None:
+                writer = pq.ParquetWriter(parquet_path, PARQUET_SCHEMA)
+            writer.write_table(table)
 
-        # Keep only relevant columns
-        cols_available = [c for c in PERF_COLS_KEEP if c in df.columns]
-        df = df[cols_available]
+            rows_this_file += len(filtered)
+            total_rows     += len(filtered)
+            del filtered, table
+            gc.collect()
 
-        print(f"  {fname}: {len(df):,} rows (cols in file: {n_cols_file})")
-        frames.append(df)
+        print(f"  {fname}: {rows_this_file:,} rows")
 
-    perf = pd.concat(frames, ignore_index=True)
-    del frames
-    gc.collect()
+    if writer:
+        writer.close()
 
-    print(f"\nTotal performance rows : {len(perf):,}")
-    print(f"Unique loans in perf   : {perf['loan_sequence_number'].nunique():,}")
+    print(f"\nTotal performance rows: {total_rows:,}")
+    perf = pd.read_parquet(parquet_path)
+    print(f"Unique loans in perf: {perf['loan_sequence_number'].nunique():,}")
     return perf
 
 
@@ -337,7 +350,8 @@ def run_build_panel(year: int, drive_root: str) -> None:
         print(f"  {os.path.basename(f)}  ({os.path.getsize(f)/1e6:.0f} MB)")
 
     print("\nLoading performance data...")
-    perf = load_performance(perf_txt_files, loan_ids)
+    parquet_path = os.path.join(drive_root, "perf_tmp.parquet")
+    perf = load_performance(perf_txt_files, loan_ids, parquet_path)
 
     # ── Add time columns ──────────────────────────────────────────────────────
     print("\nParsing time columns...")
