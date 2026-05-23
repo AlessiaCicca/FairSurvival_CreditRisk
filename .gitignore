@@ -2,6 +2,7 @@
 # R simulation outputs
 # =========================
 data_generation/simulation/run_*/
+outputs/
 
 # CSV e dati generati
 *.csv
