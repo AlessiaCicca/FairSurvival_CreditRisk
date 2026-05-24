@@ -1,23 +1,9 @@
 """
-data_generation/fnma/sample_panel.py
-
 Stratified sampling from multi-year Freddie Mac panels.
 Produces panel_all_years_sampled.csv for model training.
 
-Strategy:
-  - Keep ALL defaulters (capped at MAX_DEFAULT, stratified by year)
-  - Fill remaining slots with non-defaulters that have variable TVC
-  - If still not enough, add flat non-defaulters
-  - Target default rate = DEFAULT_RATE
 
-Usage:
-    python sample_panel.py --output_path /path/to/output --years 2018 2024
-
-Input:
-    output_path/panel_{YEAR}.csv  (one per year, from build_panel.py)
-
-Output:
-    output_path/panel_all_years_sampled.csv
+DA SISTEMARE CON PREPROCESSING
 """
 
 import os
@@ -68,7 +54,6 @@ def pass1_aggregate(output_path: str, years: range) -> pd.DataFrame:
                     loan_data[lid] = {
                         "ever_default": 0,
                         "origin_year":  year,
-                        "max_age":      0,
                         "upb_vals":     [],
                         "rate_vals":    [],
                         "ltv_vals":     [],
